@@ -23,7 +23,7 @@ Example:
 curl "https://p4c6e4mu4k5sg4fwnertd2zgwi0hordn.lambda-url.eu-north-1.on.aws/api/holidays?countryCode=FR&year=2026"
 ```
 
-Each holiday includes its date, its name in English and in the country's own language, a short description in English and French, whether it's observed nationwide or only in specific regions (with those regions listed when it's regional), and whether the date is `estimated` (Hijri/Islamic-calendar dates depend on physical moon sighting and can shift by a day from what's officially announced).
+Each holiday includes its date, a `title` object (`{ "fr", "en", "original" }` - the name in French, in English, and in the country's own language), a `description` object (`{ "fr", "en" }`), whether it's observed nationwide or only in specific regions (with those regions listed when it's regional), and whether the date is `estimated` (Hijri/Islamic-calendar dates depend on physical moon sighting and can shift by a day from what's officially announced).
 
 Full interactive reference, with a "try it out" console: **[holiday-atlas.rafikadiche.com/docs.html](https://holiday-atlas.rafikadiche.com/docs.html)**
 Raw OpenAPI spec: **[holiday-atlas.rafikadiche.com/openapi.json](https://holiday-atlas.rafikadiche.com/openapi.json)**
