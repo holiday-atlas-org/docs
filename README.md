@@ -14,8 +14,10 @@ Free, unauthenticated, read-only, rate-limited to 20 requests per minute per IP.
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/countries` | Every country with data, plus each country's holiday count for the current year. |
+| `GET /api/countries?year={year}` | Every country with data, plus each country's holiday count for the given year (defaults to the current year). |
 | `GET /api/holidays?countryCode={ISO}&year={year}` | That country's public holidays for the given year (defaults to the current year). |
+
+`year` is optional on both routes and must fall within five years either side of the current year (a rolling window, e.g. 2021–2031 in 2026); anything outside it returns `400`.
 
 Example:
 
@@ -42,8 +44,8 @@ Tools it exposes:
 
 | Tool | What it does |
 |---|---|
-| `list_countries` | Lists every country this server has public-holiday data for. |
-| `get_public_holidays` | Gets public holidays for a country (ISO 3166-1 alpha-2 code) in a given year, defaulting to the current year. |
+| `list_countries` | Lists every country this server has public-holiday data for, with holiday counts for an optional `year`. |
+| `get_public_holidays` | Gets public holidays for a country (ISO 3166-1 alpha-2 code) in a given year, defaulting to the current year (current year ±5). |
 | `get_next_public_holidays` | Gets the next upcoming public holidays for a country. |
 
 ## Frontend
@@ -51,7 +53,8 @@ Tools it exposes:
 The web app at [holiday-atlas.rafikadiche.com](https://holiday-atlas.rafikadiche.com) is a Next.js static site, in English and French, with light and dark themes.
 
 - **World map** - click any of the 210 covered countries to load its holidays. Unsupported countries are greyed out and excluded from the search selector.
-- **Country selector** - search by name; each result shows its flag and how many public holidays it has this year.
+- **Country selector** - search by name; each result shows its flag and how many public holidays it has in the selected year.
+- **Year picker** - step through years with the arrows or pick one from the dropdown (current year ±5); the calendar and the selector's counts follow it.
 - **Calendar** - one row per month. Each month's holidays sit in a horizontally-scrolling strip of cards (name, formatted date, description, and region if the holiday is regional rather than nationwide) next to a small calendar for that month with the holiday days highlighted.
 - **API and MCP** - a dedicated section links to the interactive API docs and lets you copy the MCP connect command directly, no digging through this documentation required.
 
