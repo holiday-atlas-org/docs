@@ -1,3 +1,5 @@
+![Holiday Atlas banner](assets/banner.jpg)
+
 # Holiday Atlas
 
 Public documentation for [Holiday Atlas](https://holiday-atlas.rafikadiche.com), a free public API and MCP server for public-holiday data.
