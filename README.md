@@ -8,6 +8,8 @@ The data is curated by hand and stored as recurring rules, such as a fixed date,
 
 This repository is the public documentation of the application: what it does, how it is designed and built, and how its quality is checked. The source code repositories are private.
 
+This project is part of a portfolio. The [portfolio documentation](https://github.com/rafikadiche-portfolio-org/documentation) presents the technical profile behind it and the other projects.
+
 ![The globe zoomed on a selected country, with the country list](assets/screens/map.png)
 
 ## At a glance
