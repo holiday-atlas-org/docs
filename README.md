@@ -2,63 +2,85 @@
 
 # Holiday Atlas
 
-Public documentation for [Holiday Atlas](https://holiday-atlas.rafikadiche.com), a free public API and MCP server for public-holiday data.
+Holiday Atlas is a free public API, an MCP server and a web app for the public holidays of 210 countries. It runs at <https://holiday-atlas.rafikadiche.com>.
 
-Holiday Atlas covers 210 countries, curated from a hand-maintained dataset rather than a third-party feed. Every holiday is stored as a recurring rule (a fixed calendar date, an Easter-relative rule, an nth-weekday-of-month rule, or a Hijri/Hebrew/Chinese calendar date) and resolved fresh for whichever year is requested, so the data never goes stale year to year.
+The data is curated by hand and stored as recurring rules, such as a fixed date, an offset from Easter or a date on the Hijri calendar. Each rule is resolved for the year a client asks for, so the data does not go stale from one year to the next.
 
-This repository has no code. It exists to give visitors and integrators one place to read about the API, the MCP server, and what the web app itself does.
+This repository is the public documentation of the application: what it does, how it is designed and built, and how its quality is checked. The source code repositories are private.
 
-## Public API
+![The globe zoomed on a selected country, with the country list](assets/screens/map.png)
 
-Base URL: `https://p4c6e4mu4k5sg4fwnertd2zgwi0hordn.lambda-url.eu-north-1.on.aws`
+## At a glance
 
-Free, unauthenticated, read-only, rate-limited to 20 requests per minute per IP.
-
-| Endpoint | Description |
+| Area | Summary |
 |---|---|
-| `GET /api/countries?year={year}` | Every country with data, plus each country's holiday count for the given year (defaults to the current year). |
-| `GET /api/holidays?countryCode={ISO}&year={year}` | That country's public holidays for the given year (defaults to the current year). |
+| Product | Public holiday web app, public REST API and MCP server for 210 countries |
+| Frontend | Next.js 16 (App Router, static export), React 19, TypeScript, Tailwind CSS 4, D3 canvas globe |
+| Backend | Node.js 20 on AWS Lambda (container image), TypeScript, zod, Model Context Protocol, OpenAPI 3 |
+| Data | Static dataset of 2,368 holiday rules across the Gregorian, Hijri, Hebrew and Chinese calendars |
+| Infrastructure | Terraform, Amazon CloudFront, S3, Lambda function URL, ECR, Route 53, ACM |
+| Quality | Vitest, React Testing Library, Playwright on four browser projects, axe-core accessibility scans, GitHub Actions CI/CD, performance budget |
+| Design | Design tokens, light and dark themes, responsive layout, English and French |
 
-`year` is optional on both routes and must fall within five years either side of the current year (a rolling window, e.g. 2021–2031 in 2026); anything outside it returns `400`.
+## Architecture
 
-Example:
-
-```bash
-curl "https://p4c6e4mu4k5sg4fwnertd2zgwi0hordn.lambda-url.eu-north-1.on.aws/api/holidays?countryCode=FR&year=2026"
+```mermaid
+flowchart LR
+    U["Browser"] --> CDN["CloudFront"]
+    CDN --> WEB[("S3: frontend build")]
+    U -- "REST calls" --> API["Lambda function<br/>REST API and MCP endpoint"]
+    M["MCP client"] -- "JSON-RPC" --> API
+    API --> DATA[("Static dataset<br/>holiday rules")]
+    SRC["Curated source notes"] -- "export script" --> DATA
 ```
 
-Each holiday includes its date, a `title` object (`{ "fr", "en", "original" }` - the name in French, in English, and in the country's own language), a `description` object (`{ "fr", "en" }`), whether it's observed nationwide or only in specific regions (with those regions listed when it's regional), and whether the date is `estimated` (Hijri/Islamic-calendar dates depend on physical moon sighting and can shift by a day from what's officially announced).
+The site is a static export served from S3 through CloudFront. The browser calls the API directly on its own public address. The API reads a dataset that ships inside the function, so there is no database. [Architecture](02-technical/architecture.md) has the detail.
 
-Full interactive reference, with a "try it out" console: **[holiday-atlas.rafikadiche.com/docs.html](https://holiday-atlas.rafikadiche.com/docs.html)**
-Raw OpenAPI spec: **[holiday-atlas.rafikadiche.com/openapi.json](https://holiday-atlas.rafikadiche.com/openapi.json)**
+## Documentation map
 
-## MCP server
+Functional specifications
 
-The same data is exposed as a Model Context Protocol server, so any MCP-compatible AI assistant can query it directly instead of going through the REST API.
+- [Overview](01-functional/overview.md): the problem, the users, the features and the rules behind the dates.
+- [Use cases](01-functional/use-cases.md): actors, use cases and user journeys.
+- [UX design](01-functional/ux-design.md): audiences, design tokens, screens and design decisions.
 
-Connect it:
+Technical specifications
 
-```bash
-claude mcp add --transport http holiday-atlas https://p4c6e4mu4k5sg4fwnertd2zgwi0hordn.lambda-url.eu-north-1.on.aws/mcp
-```
+- [Architecture](02-technical/architecture.md): how the parts fit together and why.
+- [Frontend](02-technical/frontend.md): the Next.js application and its canvas globe.
+- [Backend](02-technical/backend.md): the rule engine, the API and the dataset pipeline.
+- [Infrastructure](02-technical/infrastructure.md): the AWS resources and how Terraform manages them.
+- [API reference](02-technical/api-reference.md): REST routes, MCP tools and how to connect a client.
 
-Tools it exposes:
+Quality
 
-| Tool | What it does |
-|---|---|
-| `list_countries` | Lists every country this server has public-holiday data for, with holiday counts for an optional `year`. |
-| `get_public_holidays` | Gets public holidays for a country (ISO 3166-1 alpha-2 code) in a given year, defaulting to the current year (current year ±5). |
-| `get_next_public_holidays` | Gets the next upcoming public holidays for a country. |
+- [Testing](03-quality/testing.md): unit and end-to-end tests, coverage, and the status of each repository.
+- [Audit](03-quality/audit.md): performance, accessibility and code quality results.
+- [Security](03-quality/security.md): the security controls, by category.
+- [Operations](03-quality/operations.md): health checks, deployment and data updates.
 
-## Frontend
+## Skills and where they are shown
 
-The web app at [holiday-atlas.rafikadiche.com](https://holiday-atlas.rafikadiche.com) is a Next.js static site, in English and French, with light and dark themes.
+| Area | Skills | Pages |
+|---|---|---|
+| UI and UX design | User journeys, design tokens, interaction states, data visualization on a globe, responsive design, accessibility, UX writing | [Use cases](01-functional/use-cases.md), [UX design](01-functional/ux-design.md) |
+| Frontend development | React, Next.js, TypeScript, Tailwind CSS, D3, HTML canvas, internationalization, code splitting, web performance | [Frontend](02-technical/frontend.md) |
+| Backend development | Node.js, TypeScript, REST API design, OpenAPI, MCP server, calendar algorithms, data modelling, schema validation | [Backend](02-technical/backend.md), [API reference](02-technical/api-reference.md) |
+| Cloud and DevOps | AWS serverless, Docker, Terraform, infrastructure as code, GitHub Actions, CI/CD, cost control | [Infrastructure](02-technical/infrastructure.md), [Operations](03-quality/operations.md) |
+| Quality and security | Unit testing, component testing, end-to-end testing, cross-browser testing, WCAG 2.1 AA, performance budgets, rate limiting | [Testing](03-quality/testing.md), [Audit](03-quality/audit.md), [Security](03-quality/security.md) |
 
-- **World map** - click any of the 210 covered countries to load its holidays. Unsupported countries are greyed out and excluded from the search selector.
-- **Country selector** - search by name; each result shows its flag and how many public holidays it has in the selected year.
-- **Year picker** - step through years with the arrows or pick one from the dropdown (current year ±5); the calendar and the selector's counts follow it.
-- **Calendar** - one row per month. Each month's holidays sit in a horizontally-scrolling strip of cards (name, formatted date, description, and region if the holiday is regional rather than nationwide) next to a small calendar for that month with the holiday days highlighted.
-- **API and MCP** - a dedicated section links to the interactive API docs and lets you copy the MCP connect command directly, no digging through this documentation required.
+## Repositories
+
+| Repository | Role | Visibility |
+|---|---|---|
+| `frontend` | Next.js static site: the globe, the country search and the holiday calendar | Private |
+| `backend` | The rule engine, the REST API, the MCP endpoint and the dataset scripts | Private |
+| `infrastructure` | Terraform for the site, the function and the budget alert | Private |
+| `documentation` | This repository | Public |
+
+## Scope of this documentation
+
+The pages describe patterns and the public interface. They leave out resource identifiers, access policies and operating procedures, which stay in the private repositories. Measured results carry the date they were taken.
 
 ## Questions
 
